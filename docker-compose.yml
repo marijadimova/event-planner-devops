@@ -3,29 +3,49 @@ version: '3.8'
 services:
   mongo:
     image: mongo:6
+    container_name: mongo
     restart: always
-    volumes:
-      - mongo-data:/data/db
     ports:
       - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
 
   backend:
-    build: ./backend
+    build:
+      context: ./backend
     container_name: backend
+    restart: always
     ports:
       - "8080:8080"
     depends_on:
       - mongo
     environment:
-      - SPRING_DATA_MONGODB_URI=mongodb://mongo:27017/eventdb
+      SPRING_DATA_MONGODB_URI: mongodb://mongo:27017/eventdb
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
     container_name: frontend
+    restart: always
     ports:
-      - "3000:80"  # Или "3000:80" ако користиш nginx
+      - "3000:80"
     depends_on:
       - backend
+
+  mongo-express:
+    image: mongo-express
+    container_name: mongo-express
+    restart: always
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_SERVER: mongo
+      ME_CONFIG_MONGODB_PORT: 27017
+      ME_CONFIG_MONGODB_ENABLE_ADMIN: "true"
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: admin
+    depends_on:
+      - mongo
 
 volumes:
   mongo-data:
