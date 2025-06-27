@@ -1,0 +1,26 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: event-planner-ingress
+  namespace: event-planner-dev
+  # Отстрани ја Traefik анотацијата ако користиш nginx
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: event.local
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: backend
+                port:
+                  number: 8080
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend
+                port:
+                  number: 80
