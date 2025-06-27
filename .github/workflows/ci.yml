@@ -39,3 +39,19 @@ jobs:
         context: ./frontend
         push: true
         tags: ${{ env.DOCKERHUB_USERNAME }}/${{ env.FRONTEND_IMAGE }}:latest
+
+  notify-on-failure:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    if: failure()
+    steps:
+    - name: Create issue on failure
+      uses: peter-evans/create-issue@v4
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        title: "CI build failed for commit ${{ github.sha }}"
+        body: |
+          The CI/CD pipeline failed for commit `${{ github.sha }}` on branch `${{ github.ref_name }}`.
+
+          Check the [workflow run logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.
