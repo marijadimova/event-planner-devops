@@ -18,5 +18,4 @@ spec:
           image: marijadimova25/event-frontend:latest
           ports:
             - containerPort: 80
-      imagePullSecrets:
-        - name: regcred
+

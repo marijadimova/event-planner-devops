@@ -21,5 +21,4 @@ spec:
           envFrom:
             - configMapRef:
                 name: backend-config
-      imagePullSecrets:
-        - name: regcred
+
