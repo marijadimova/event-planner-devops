@@ -26,16 +26,38 @@ jobs:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    - name: Build and push backend image
+    - name: Build and push backend image (multi-arch)
       uses: docker/build-push-action@v5
       with:
         context: ./backend
         push: true
-        tags: ${{ env.DOCKERHUB_USERNAME }}/${{ env.BACKEND_IMAGE }}:latest
+        platforms: linux/amd64,linux/arm64
+        tags: |
+          ${{ env.DOCKERHUB_USERNAME }}/${{ env.BACKEND_IMAGE }}:latest
+          ${{ env.DOCKERHUB_USERNAME }}/${{ env.BACKEND_IMAGE }}:${{ github.sha }}
 
-    - name: Build and push frontend image
+    - name: Build and push frontend image (multi-arch)
       uses: docker/build-push-action@v5
       with:
         context: ./frontend
         push: true
-        tags: ${{ env.DOCKERHUB_USERNAME }}/${{ env.FRONTEND_IMAGE }}:latest
+        platforms: linux/amd64,linux/arm64
+        tags: |
+          ${{ env.DOCKERHUB_USERNAME }}/${{ env.FRONTEND_IMAGE }}:latest
+          ${{ env.DOCKERHUB_USERNAME }}/${{ env.FRONTEND_IMAGE }}:${{ github.sha }}
+
+  notify-on-failure:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    if: failure()
+    steps:
+    - name: Create issue on failure
+      uses: peter-evans/create-issue@v4
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        title: "CI build failed for commit ${{ github.sha }}"
+        body: |
+          The CI/CD pipeline failed for commit ${{ github.sha }} on branch ${{ github.ref_name }}.
+
+          Check the [workflow run logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.
